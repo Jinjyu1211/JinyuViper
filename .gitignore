@@ -1,0 +1,18 @@
+## Build outputs
+bin/
+obj/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## DLLs (built from source)
+*.dll
+*.pdb
+*.deps.json
+
+## NuGet
+packages.lock.json

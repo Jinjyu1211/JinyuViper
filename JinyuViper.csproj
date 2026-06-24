@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>JinyuViper</AssemblyName>
+    <RootNamespace>JinyuViper</RootNamespace>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+
+    <!-- 动态获取 PromeRotation 的唯一版本号文件夹 -->
+    <PromeRotationDir>$([System.IO.Directory]::GetDirectories('$(APPDATA)\XIVLauncherCN\installedPlugins\PromeRotation\')[0])</PromeRotationDir>
+    <PromeRotationPath>$(PromeRotationDir.TrimEnd('\'))</PromeRotationPath>
+
+    <!-- 指定输出目录 -->
+    <OutputPath>$(APPDATA)\XIVLauncherCN\pluginConfigs\PromeRotation\ACR\JinyuViper\</OutputPath>
+
+    <!-- 不再自动附加 net10.0-windows -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <!-- 移除调试符号 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Dalamud">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Dalamud.Bindings.ImGui">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\Dalamud.Bindings.ImGui.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ECommons">
+      <HintPath>$(PromeRotationPath)\ECommons.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="FFXIVClientStructs">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\FFXIVClientStructs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="InteropGenerator.Runtime">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\InteropGenerator.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Lumina">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\Lumina.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Lumina.Excel">
+      <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\Lumina.Excel.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PromeRotation">
+      <HintPath>$(PromeRotationPath)\PromeRotation.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PromeRotation.Scripting">
+      <HintPath>$(PromeRotationPath)\PromeRotation.Scripting.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
