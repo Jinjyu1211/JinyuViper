@@ -1,4 +1,4 @@
-﻿{
+{
     "supportedJobs":  [
                           {
                               "contentScope":  "Unspecified",
@@ -12,6 +12,5 @@
     "author":  "JinyuViper",
     "apiVersion":  15,
     "sha256":  "c70913c9728dfc4527ff3a31bcc4647c1f6e310c903fdc4c7b855fe505d36f4d",
-    "referencePromeVersion":  "1.5.3.2",
-    "sourceRepositoryUrl":  "https://github.com/Jinjyu1211/JinyuViper"
+    "referencePromeVersion":  "1.5.3.2"
 }
