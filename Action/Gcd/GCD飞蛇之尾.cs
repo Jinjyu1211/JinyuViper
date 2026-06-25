@@ -38,8 +38,7 @@ public class GCD飞蛇之尾 : IDecisionResolver
                 return new CheckResult(true, $"优先飞蛇 飞蛇之尾 飞蛇层数={VPRApi.飞蛇层数()}");
         }
 
-        // 日随模式：与副本模式相同逻辑，仅移除120团辅检测
-        if (PromeSettings.Instance.GetQt("日随模式"))
+        if (JinyuViperRotation.IsDailyMode)
         {
             if (!VPRApi.处于附体状态() && !VPRApi.处于蛇剑连击())
                 return new CheckResult(true, $"日随模式 飞蛇之尾 飞蛇层数={VPRApi.飞蛇层数()}");

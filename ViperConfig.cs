@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using ECommons.DalamudServices;
 using ECommons.Logging;
@@ -19,6 +20,9 @@ public static class ViperConfig
     public static int  HotkeyColumns => _config.HotkeyColumns;
     public static ViperSettings Current => _config;
 
+    /// <summary>本ACR DLL所在目录的绝对路径</summary>
+    public static readonly string BaseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "";
+
     public static void Load()
     {
         try
@@ -26,10 +30,11 @@ public static class ViperConfig
             Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
             if (File.Exists(ConfigPath))
                 _config = JsonSerializer.Deserialize<ViperSettings>(File.ReadAllText(ConfigPath), JsonOptions) ?? new();
-            JinyuViperRotation.SelectedOpenerIndex = _config.SelectedOpenerIndex;
-            PluginLog.Information($"[VPR] 配置已加载: visible={_config.HotkeyVisible}, columns={_config.HotkeyColumns}, opener={_config.SelectedOpenerIndex}");
+            JinyuViperRotation.SelectedOpenerIndex = Math.Clamp(_config.SelectedOpenerIndex, 0, 2);
+            JinyuViperRotation.IsDailyMode = _config.DailyMode;
+            PluginLog.Information($"[VPR] 配置已加载: visible={_config.HotkeyVisible}, columns={_config.HotkeyColumns}, opener={_config.SelectedOpenerIndex}, daily={_config.DailyMode}");
         }
-        catch { _config = new(); }
+        catch (Exception ex) { PluginLog.Error($"[VPR] 配置加载失败: {ex.Message}"); _config = new(); }
     }
 
     public static void Save()
@@ -37,9 +42,8 @@ public static class ViperConfig
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(ConfigPath)!);
-            _config.HotkeyVisible       = HotkeyVisible;
-            _config.HotkeyColumns       = HotkeyColumns;
             _config.SelectedOpenerIndex = JinyuViperRotation.SelectedOpenerIndex;
+            _config.DailyMode = JinyuViperRotation.IsDailyMode;
             string tmp = ConfigPath + ".tmp";
             File.WriteAllText(tmp, JsonSerializer.Serialize(_config, JsonOptions));
             File.Move(tmp, ConfigPath, overwrite: true);
@@ -48,6 +52,5 @@ public static class ViperConfig
         catch (Exception ex) { PluginLog.Error($"[VPR] 保存设置失败: {ex.Message}"); }
     }
 
-    public static void SetHotkeyVisible(bool visible) => _config.HotkeyVisible = visible;
     public static void SetHotkeyColumns(int cols)    => _config.HotkeyColumns = cols;
 }

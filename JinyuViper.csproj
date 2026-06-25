@@ -26,6 +26,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Resources\Clear.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Dalamud">
       <HintPath>$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\Dalamud.dll</HintPath>
       <Private>false</Private>

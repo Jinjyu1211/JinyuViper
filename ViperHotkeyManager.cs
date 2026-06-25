@@ -53,11 +53,11 @@ internal static class ViperHotkeyManager
 
         panel.AddHotkey("附体", new ReawakenLogic(), 34626u);
 
-        // 极限技：动态获取技能ID
-        panel.AddHotkey("极限技", new LimitBreakLogic(), 181u);
+        // 极限技：用技能ID 3（冲刺）作为图标
+        panel.AddHotkey("极限技", new LimitBreakLogic(), 3u);
 
-        // 清空队列：执行逻辑
-        panel.AddHotkey("清空队列", new ExecuteLogic(ClearQueueAction), 0u);
+        // 清空队列：执行逻辑 + 自定义红底白X图标
+        panel.AddHotkey("清空队列", new ExecuteLogic(ClearQueueAction), 0u, Path.Combine(ViperConfig.BaseDir, "Resources", "Clear.png"));
     }
 
     private static void ClearQueueAction()

@@ -136,7 +136,7 @@ namespace JinyuViper
                 if (!有目标()) return false;
                 return Core.Target!.DistanceToMe() <= GameData.GetCurrentMeleeRange();
             }
-            catch { return true; }
+            catch { return false; }
         }
         public static bool 目标在距离内(float range)
         {
@@ -145,7 +145,7 @@ namespace JinyuViper
                 if (!有目标()) return false;
                 return Core.Target!.DistanceToMe() <= range;
             }
-            catch { return true; }
+            catch { return false; }
         }
         public static bool 目标在远程范围() => 目标在距离内(25f);
         public static bool 目标在背后()
@@ -155,11 +155,11 @@ namespace JinyuViper
         }
         public static uint 附近敌人数(float range = 5f)
         {
-            try { return TargetHelper.EnemyInRange(range); } catch { return 1; }
+            try { return TargetHelper.EnemyInRange(range); } catch { return 0; }
         }
         public static uint 目标周围敌人数(float range = 5f)
         {
-            try { return TargetHelper.EnemyInRangeTarget(Core.Target, range); } catch { return 1; }
+            try { if (!有目标()) return 0; return TargetHelper.EnemyInRangeTarget(Core.Target, range); } catch { return 0; }
         }
 
         public static float GCD剩余ms() => ActionHelper.GetGcdRemain() * 1000f;
@@ -171,7 +171,7 @@ namespace JinyuViper
                 var adjusted = ActionHelper.GetAdjustedActionId(id);
                 float cd = 0f;
                 if (adjusted != 0) cd = ActionHelper.GetActionCooldown(adjusted) * 1000f;
-                if (cd == 0f && id != 0) cd = ActionHelper.GetActionCooldown(id) * 1000f;
+                if (cd < 1f && id != 0) cd = ActionHelper.GetActionCooldown(id) * 1000f;
                 return cd;
             }
             catch { return 0f; }
@@ -393,6 +393,7 @@ namespace JinyuViper
 
         public static bool BUFF型为蛇剑型()
         {
+            if (!有Buff(ViperBuff.急速) && !有Buff(ViperBuff.猛袭)) return false;
             return Math.Abs(Buff剩余ms(ViperBuff.急速) - Buff剩余ms(ViperBuff.猛袭)) < 3000f;
         }
 
@@ -652,53 +653,57 @@ namespace JinyuViper
             var s = PromeSettings.Instance;
             switch (presetIndex)
             {
-                case 0: // 副本模式
-                    s.SetQt("日随模式", false);
+                case 0: // 高难模式
+                    JinyuViperRotation.IsDailyMode = false;
                     s.SetQt("120对齐", true);
                     s.SetQt("对齐蛇气", true);
                     s.SetQt("智能AOE", false);
                     s.SetQt("AOE", true);
                     s.SetQt("起手爆发", true);
+                    s.SetQt("爆发药", false);
                     s.SetQt("倾泻爆发", false);
                     s.SetQt("优先飞蛇", false);
                     break;
 
                 case 1: // 日随模式
-                    s.SetQt("日随模式", true);
+                    JinyuViperRotation.IsDailyMode = true;
                     s.SetQt("120对齐", false);
                     s.SetQt("对齐蛇气", false);
                     s.SetQt("智能AOE", true);
                     s.SetQt("AOE", true);
                     s.SetQt("起手爆发", false);
+                    s.SetQt("爆发药", false);
                     s.SetQt("倾泻爆发", false);
                     s.SetQt("优先飞蛇", false);
                     break;
 
                 case 2: // 倾泻模式
-                    s.SetQt("日随模式", false);
+                    JinyuViperRotation.IsDailyMode = false;
                     s.SetQt("120对齐", false);
                     s.SetQt("对齐蛇气", false);
                     s.SetQt("智能AOE", false);
                     s.SetQt("AOE", true);
                     s.SetQt("起手爆发", true);
+                    s.SetQt("爆发药", false);
                     s.SetQt("倾泻爆发", true);
                     s.SetQt("优先飞蛇", false);
                     break;
 
                 case 3: // 全开调试
+                    JinyuViperRotation.IsDailyMode = false;
                     foreach (var kvp in JinyuViperRotation.QtList)
-                        if (kvp.Key != "停手") s.SetQt(kvp.Key, true);
+                        if (kvp.Key != "停手" && kvp.Key != "优先飞蛇")
+                            s.SetQt(kvp.Key, true);
                     break;
             }
         }
 
-        /// <summary>预设名称列表</summary>
         public static readonly string[] PresetNames =
         {
-            "副本模式",   // 120对齐+对齐蛇气+标准循环
-            "日随模式",   // 简化循环+智能AOE
-            "倾泻模式",   // 不保留资源+不起手
-            "全开调试",   // 除停手外全部开启
+            "高难模式",
+            "日随模式",
+            "倾泻模式",
+            "全开调试",
         };
     }
 }

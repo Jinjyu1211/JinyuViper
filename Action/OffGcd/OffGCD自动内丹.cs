@@ -9,7 +9,7 @@ internal class OffGCD自动内丹 : IDecisionResolver
     {
         if (PromeSettings.Instance.GetQt("停手"))
             return new CheckResult(false, "停手");
-        if (!PromeSettings.Instance.GetQt("日随模式"))
+        if (!JinyuViperRotation.IsDailyMode)
             return new CheckResult(false, "非日随模式");
         if (!PromeSettings.Instance.GetQt("内丹"))
             return new CheckResult(false, "内丹QT关闭");

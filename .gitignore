@@ -14,5 +14,9 @@ obj/
 *.pdb
 *.deps.json
 
+# 但保留 release 目录里的发布产物
+!release/
+!release/**
+
 ## NuGet
 packages.lock.json

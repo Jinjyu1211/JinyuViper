@@ -9,13 +9,12 @@ internal class OffGCD自动浴血 : IDecisionResolver
     {
         if (PromeSettings.Instance.GetQt("停手"))
             return new CheckResult(false, "停手");
-        if (!PromeSettings.Instance.GetQt("日随模式"))
+        if (!JinyuViperRotation.IsDailyMode)
             return new CheckResult(false, "非日随模式");
         if (!PromeSettings.Instance.GetQt("浴血"))
             return new CheckResult(false, "浴血QT关闭");
         if (VPRApi.技能CD毫秒(ViperSkill.浴血) > 0f)
             return new CheckResult(false, "浴血CD中");
-        // GCD窗口放宽（浴血是0.5s动画，不卡GCD）
         if (VPRApi.GCD剩余ms() < 300f)
             return new CheckResult(false, "GCD窗口不足");
         float hp = VPRApi.自身血量百分比();

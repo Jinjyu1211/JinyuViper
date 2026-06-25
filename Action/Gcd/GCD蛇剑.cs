@@ -69,7 +69,7 @@ public class GCD蛇剑 : IDecisionResolver
         if (VPRApi.等级() >= 86 && 蛇灵气CD > 0f && 蛇灵气CD < 12f)
         {
             int 当前飞蛇 = VPRApi.飞蛇层数();
-            int 蛇灵气给魂 = VPRApi.等级() >= 92 ? 2 : 1;
+            int 蛇灵气给魂 = 1;
             int 总飞蛇 = 当前飞蛇 + 蛇灵气给魂;
 
             // 飞蛇之魂直接超上限 → 必须先消化飞蛇
@@ -89,11 +89,9 @@ public class GCD蛇剑 : IDecisionResolver
             return new CheckResult(false, $"溢出保护 飞蛇{总飞蛇}>3+可消{可消化} 窗口{剩余窗口:F0}ms");
         }
 
-        // 日随模式：与副本模式相同逻辑，仅移除120团辅检测
-        if (PromeSettings.Instance.GetQt("日随模式"))
+        if (JinyuViperRotation.IsDailyMode)
             return new CheckResult(true, $"日随模式 开蛇剑连 充能={充能:F1}");
 
-        // 120对齐：蛇灵气即将就绪时主动打强碎灵蛇续buff，保障团辅期2个附体
         if (PromeSettings.Instance.GetQt("120对齐") && VPRApi.等级() >= 86)
         {
             float 双附体时间 = VPRApi.附体时间() * 2f / 1000f;

@@ -79,6 +79,7 @@ internal static class ViperPositionOverlay
             if (VPRApi.有Buff(ViperBuff.双牙连击标记)) return PositionalType.Flank;
             if (VPRApi.有Buff(ViperBuff.双牙乱击标记)) return PositionalType.Rear;
         }
+        if (followUp == 8) return PositionalType.None; // AOE版无身位要求
 
         // 基础GCD：用Next基础GCD()获取实际技能ID判断身位
         uint nextBase = VPRApi.Next基础GCD();

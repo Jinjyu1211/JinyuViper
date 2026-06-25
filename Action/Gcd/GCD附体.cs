@@ -36,8 +36,7 @@ public class GCD附体 : IDecisionResolver
         if (PromeSettings.Instance.GetQt("倾泻爆发"))
             return new CheckResult(true, $"倾泻爆发 开附体 灵力={VPRApi.灵力值()}");
 
-        // 日随模式：与副本模式相同逻辑，仅移除120团辅检测
-        if (PromeSettings.Instance.GetQt("日随模式"))
+        if (JinyuViperRotation.IsDailyMode)
             return new CheckResult(true, $"日随模式 开附体 灵力={VPRApi.灵力值()}");
 
         float comboTime = VPRApi.连击剩余ms();

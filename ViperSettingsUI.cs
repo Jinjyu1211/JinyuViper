@@ -22,7 +22,8 @@ internal static class ViperSettingsUI
         // 固定字体缩放，防止随窗口/DPI放大
         float origFontScale = ImGui.GetIO().FontGlobalScale;
         ImGui.GetIO().FontGlobalScale = 1.0f;
-
+        try
+        {
         if (ImGui.BeginTabBar("VPR_Settings"))
         {
             if (ImGui.BeginTabItem("战斗设置"))
@@ -58,25 +59,32 @@ internal static class ViperSettingsUI
         if (ImGui.Button("保存设置", new Vector2(120, 0))) ViperConfig.Save();
         ImGui.SameLine();
         ImGui.TextDisabled("保存后下次加载时生效");
-
+        }
+        finally
+        {
         // 恢复原始字体缩放
         ImGui.GetIO().FontGlobalScale = origFontScale;
+        }
     }
 
     // ==================== 战斗设置 ====================
 
     private static void DrawCombatSettings()
     {
-        // 预设按钮
+        if (!ImGui.BeginChild("CombatScroll", Vector2.Zero, false, ImGuiWindowFlags.None))
+        {
+            ImGui.EndChild();
+            return;
+        }
+
         SectionHeader("快捷预设");
         for (int i = 0; i < VPRApi.PresetNames.Length; i++)
         {
             if (i > 0) ImGui.SameLine();
             var label = VPRApi.PresetNames[i];
-            // 根据预设类型用不同颜色
             var col = i switch
             {
-                0 => new Vector4(0.2f, 0.6f, 1f, 1f),   // 副本模式 - 蓝
+                0 => new Vector4(0.2f, 0.6f, 1f, 1f),   // 高难模式 - 蓝
                 1 => new Vector4(0.2f, 1f, 0.5f, 1f),   // 日随模式 - 绿
                 2 => new Vector4(1f, 0.6f, 0.2f, 1f),   // 倾泻模式 - 橙
                 _ => new Vector4(0.8f, 0.8f, 0.8f, 1f), // 全开调试 - 灰
@@ -89,12 +97,11 @@ internal static class ViperSettingsUI
             }
             ImGui.PopStyleColor();
         }
-        Tooltip("一键批量设置多个QT开关");
+        Tooltip("一键批量设置多个QT开关，日随/高难模式切换在此处");
 
         ImGui.Spacing();
 
-        // 血量阈值
-        SectionHeader("自动能力技阈值");
+        SectionHeader("自动能力技阈值（仅日随模式生效）");
         float 内丹阈值 = ViperConfig.Current.内丹血量阈值;
         ImGui.SetNextItemWidth(80f);
         if (ImGui.InputFloat("##内丹", ref 内丹阈值, 1f, 5f, "%.0f"))
@@ -111,32 +118,32 @@ internal static class ViperSettingsUI
 
         ImGui.Spacing();
 
-        // 真北设置
-        SectionHeader("真北设置");
+        SectionHeader("真北设置（仅日随模式生效）");
         int 真北GCD = ViperConfig.Current.真北GCD百分比;
         ImGui.SetNextItemWidth(80f);
         if (ImGui.InputInt("##真北", ref 真北GCD))
             ViperConfig.Current.真北GCD百分比 = Math.Clamp(真北GCD, 0, 100);
         ImGui.SameLine(); ImGui.Text("真北GCD进度%");
-        Tooltip("GCD进度超过此百分比时才允许使用真北，避免卡GCD");
+        Tooltip("GCD进度超过此百分比时才允许使用真北，避免卡GCD（0=不限制）");
+
+        ImGui.EndChild();
     }
 
     // ==================== 起手 ====================
 
     private static void DrawOpenerSettings()
     {
-        var s = PromeSettings.Instance;
-        bool 日随 = s.GetQt("日随模式");
+        bool 日随 = JinyuViperRotation.IsDailyMode;
         ImGui.TextColored(日随 ? SuccessGreen : WarningYellow,
             日随 ? ">> 当前: 日随模式（无起手，有什么打什么）" : ">> 当前: 高难模式（含120对齐+起手爆发）");
         ImGui.Spacing();
 
         var names = JinyuViperRotation.Openers.Keys.ToList();
-        var idx = JinyuViperRotation.SelectedOpenerIndex;
+        var idx = Math.Clamp(JinyuViperRotation.SelectedOpenerIndex, 0, names.Count - 1);
         if (ImGui.Combo("起手方式", ref idx, [.. names]))
         {
             JinyuViperRotation.SelectedOpenerIndex = idx;
-            PluginLog.Information($"[VPR] 切换起手为: {names[JinyuViperRotation.SelectedOpenerIndex]}");
+            PluginLog.Information($"[VPR] 切换起手为: {names[idx]}");
         }
         Tooltip("标准爆发: 11步完整起手 | 齿剑快速: 12步拿急速 | 空白: 直接主循环");
     }
@@ -249,6 +256,7 @@ internal static class ViperSettingsUI
             DebugLabel("激活", ViperOpenerStateMachine.IsActive.ToString());
             DebugLabel("步骤", $"{ViperOpenerStateMachine.StepIndex}/{ViperOpenerStateMachine.StepCount}");
             DebugLabel("UseOpener", JinyuViperRotation.UseOpener.ToString());
+            DebugLabel("日随模式", JinyuViperRotation.IsDailyMode.ToString());
 
             ImGui.Spacing();
 
@@ -306,6 +314,12 @@ internal static class ViperSettingsUI
 
     private static void DrawMDrawSettings()
     {
+        if (!ImGui.BeginChild("MDrawScroll", Vector2.Zero, false, ImGuiWindowFlags.None))
+        {
+            ImGui.EndChild();
+            return;
+        }
+
         SectionHeader("mDraw 插件状态");
         bool ready = ViperPositionOverlay.IsMDrawReady;
 
@@ -320,7 +334,6 @@ internal static class ViperSettingsUI
 
         ImGui.Spacing();
 
-        // 安装指引
         SectionHeader("安装步骤");
         ImGui.PushStyleColor(ImGuiCol.Text, LinkBlue);
         ImGui.TextWrapped(
@@ -329,7 +342,6 @@ internal static class ViperSettingsUI
             "3. 将 mDraw.dll 复制到以下路径:\n");
         ImGui.PopStyleColor();
 
-        // 路径框
         string path = "%APPDATA%\\XIVLauncherCN\\pluginConfigs\\PromeRotation\\Plugins\\mDraw\\mDraw.dll";
         ImGui.SetNextItemWidth(ImGui.GetWindowContentRegionMax().X - ImGui.GetCursorPosX() - 10f);
         ImGui.InputText("##MdrawPath", ref path, 256, ImGuiInputTextFlags.ReadOnly);
@@ -343,7 +355,6 @@ internal static class ViperSettingsUI
 
         ImGui.Spacing();
 
-        // 颜色配置
         if (!ready) ImGui.BeginDisabled();
 
         SectionHeader("颜色配置");
@@ -360,6 +371,8 @@ internal static class ViperSettingsUI
         ImGui.TextColored(MutedText, "正确身位 Alpha \u2265 0.65 时启用站错变色和 GCD 填充效果");
 
         if (!ready) ImGui.EndDisabled();
+
+        ImGui.EndChild();
     }
 
     // ==================== UI 辅助方法 ====================

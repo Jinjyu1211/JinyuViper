@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.DalamudServices;
+using ECommons.Logging;
 using PromeRotation.Core;
 using PromeRotation.Data;
 using PromeRotation.Managers;
@@ -12,9 +13,9 @@ namespace JinyuViper;
 
 public class ViperRotationEventHandler : IRotationEventHandler
 {
-    private static uint? _savedTargetId;      // 停手前保存的目标ID
-    private static bool _wasStopActive;       // 上一帧停手状态
-    private static bool _targetRestored;      // 目标是否已恢复（防止每帧重复查找）
+    private static uint? _savedTargetId;
+    private static bool _wasStopActive;
+    private static bool _targetRestored;
 
     public void OnUpdate()
     {
@@ -25,7 +26,6 @@ public class ViperRotationEventHandler : IRotationEventHandler
     public void OnOutOfBattleUpdate()
     {
         Handle停手();
-        ViperPositionOverlay.Update();
     }
 
     public void OnBattleStarted() => ViperOpenerStateMachine.Start();
@@ -48,18 +48,14 @@ public class ViperRotationEventHandler : IRotationEventHandler
         Reset停手状态();
     }
 
-    /// <summary>
-    /// 停手QT逻辑：
-    /// 开启时：保存当前目标，取消选中（停止自动攻击）
-    /// 关闭时：恢复之前的目标，若阵亡则按AOE设置选择新目标
-    /// </summary>
     private static void Handle停手()
     {
+        try
+        {
         bool stopActive = PromeSettings.Instance.GetQt("停手");
 
         if (stopActive)
         {
-            // 停手刚开启：保存当前目标并取消选中
             if (!_wasStopActive)
             {
                 var current = Core.Target;
@@ -68,10 +64,9 @@ public class ViperRotationEventHandler : IRotationEventHandler
                 else
                     _savedTargetId = null;
 
-                Core.SetTarget(null);  // 取消选中，停止自动攻击
+                Core.SetTarget(null);
                 _targetRestored = false;
             }
-            // 停手持续中：确保无目标
             else if (Core.Target != null)
             {
                 Core.SetTarget(null);
@@ -81,14 +76,12 @@ public class ViperRotationEventHandler : IRotationEventHandler
             return;
         }
 
-        // 停手刚关闭：恢复目标
         if (_wasStopActive && !_targetRestored)
         {
             RestoreTarget();
             _targetRestored = true;
         }
 
-        // 停手已关闭超过1帧，重置状态让框架自动选目标
         if (!stopActive && !_wasStopActive)
         {
             _savedTargetId = null;
@@ -96,11 +89,12 @@ public class ViperRotationEventHandler : IRotationEventHandler
         }
 
         _wasStopActive = stopActive;
+        }
+        catch (Exception ex) { PluginLog.Error($"[VPR] Handle停手异常: {ex.Message}"); }
     }
 
     private static void RestoreTarget()
     {
-        // 尝试恢复之前的目标
         if (_savedTargetId.HasValue)
         {
             var obj = Svc.Objects.SearchById(_savedTargetId.Value);
@@ -111,7 +105,6 @@ public class ViperRotationEventHandler : IRotationEventHandler
             }
         }
 
-        // 目标不可用，选择新目标
         var newTarget = FindNewTarget();
         if (newTarget != null)
             Core.SetTarget(newTarget);
@@ -138,7 +131,6 @@ public class ViperRotationEventHandler : IRotationEventHandler
 
             if (useAoe)
             {
-                // 智能AOE：优先3米内最高HP（敌人最密集处）
                 float hpPercent = bc.CurrentHp / Math.Max(1f, bc.MaxHp);
                 if (dist <= 3f && hpPercent > bestHp)
                 {
@@ -149,7 +141,6 @@ public class ViperRotationEventHandler : IRotationEventHandler
             }
             else
             {
-                // 非AOE：最近目标
                 if (dist < bestDist)
                 {
                     best = bc;

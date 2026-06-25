@@ -10,7 +10,7 @@ using PromeRotation.Timeline;
 
 namespace JinyuViper;
 
-[RotationMetadata(41u, "蝰蛇剑士", "JinyuViper", "1.0.1")]
+[RotationMetadata(41u, "蝰蛇剑士", "JinyuViper", "1.0.2")]
 public class JinyuViperRotation : IRotation
 {
     public string RotationName => "蝰蛇剑士";
@@ -37,12 +37,11 @@ public class JinyuViperRotation : IRotation
             ["120对齐"]  = false,
             ["对齐蛇气"]  = false,
             ["起手爆发"]  = true,
-            ["爆发药"]   = true,
+            ["爆发药"]   = false,
             ["倾泻爆发"]  = false,
             ["优先飞蛇"]  = false,
             ["团辅补飞蛇"] = true,
             ["身位指示"]  = true,
-            ["日随模式"]  = false,
         };
 
     public static HashSet<string> HiddenQts { get; } = new() { "优化GCD偏移" };
@@ -56,6 +55,7 @@ public class JinyuViperRotation : IRotation
         };
 
     public static int SelectedOpenerIndex { get; set; } = 0;
+    public static bool IsDailyMode { get; set; } = false;
 
     public JinyuViperRotation()
     {
@@ -82,6 +82,8 @@ public class JinyuViperRotation : IRotation
         foreach (var kvp in QtList)
             PromeSettings.Instance.AddQt(kvp.Key, kvp.Value);
 
+        PromeSettings.Instance.SetQt("爆发药", false);
+
         ViperConfig.Load();
         try { ViperHotkeyManager.Setup(); } catch { }
         ViperOpenerStateMachine.BuildStandardSteps();
@@ -89,7 +91,7 @@ public class JinyuViperRotation : IRotation
 
     public IOpener? GetOpener() => null;
 
-    public static bool UseOpener => !PromeSettings.Instance.GetQt("日随模式");
+    public static bool UseOpener => !IsDailyMode;
 
     public PAction? NextGcd()
     {
@@ -120,7 +122,6 @@ public class JinyuViperRotation : IRotation
         return null;
     }
 
-    // ProcessAlwaysDecision不受HasActiveCommand限制，确保起手OffGCD不被阻塞
     public PAction? NextAlways()
     {
         if (!UseOpener || !ViperOpenerStateMachine.IsActive) return null;
@@ -171,18 +172,15 @@ public class JinyuViperRotation : IRotation
     {
         var s = PromeSettings.Instance;
 
-        // 日随模式 + 起手爆发 同时开启 → 强制关闭起手爆发 + 重置状态机
-        if (s.GetQt("起手爆发") && s.GetQt("日随模式"))
+        if (IsDailyMode && s.GetQt("起手爆发"))
         {
             s.SetQt("起手爆发", false);
             if (ViperOpenerStateMachine.IsActive) ViperOpenerStateMachine.Reset();
         }
 
-        // 倾泻爆发 ↔ 优先飞蛇 互斥
         if (s.GetQt("倾泻爆发") && s.GetQt("优先飞蛇"))
             s.SetQt("优先飞蛇", false);
 
-        // 智能AOE：开启时设置目标选择模式为3米内最高HP（敌人最密集），关闭时恢复None
         if (s.GetQt("智能AOE") && s.GetQt("AOE"))
         {
             if (s.TargetSelectorMode != SelectorModeType.HighestHpIn3R)
@@ -194,7 +192,6 @@ public class JinyuViperRotation : IRotation
                 s.TargetSelectorMode = SelectorModeType.None;
         }
 
-        // DrawQTs每帧调用，确保Hotkey面板在当前Rotation激活时可见
         ViperHotkeyManager.EnsureVisible();
     }
 

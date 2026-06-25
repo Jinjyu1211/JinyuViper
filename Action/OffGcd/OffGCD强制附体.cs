@@ -27,6 +27,6 @@ public class OffGCD强制附体 : IDecisionResolver
     }
     public PAction GetAction()
     {
-        return new PAction(ViperSkill.祖灵降临, ActionType.OffGcd, ActionTargetType.Target);
+        return new PAction(ViperSkill.祖灵降临, ActionType.Gcd, ActionTargetType.Target);
     }
 }

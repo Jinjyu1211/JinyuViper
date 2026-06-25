@@ -23,6 +23,8 @@ internal static class ViperOpenerStateMachine
     private static List<OpenerStep> _steps = null!;
     private static int _index = 0;
     private static bool _active = false;
+    private static DateTime _lastStepTime = DateTime.MinValue;
+    private static readonly TimeSpan StepTimeout = TimeSpan.FromSeconds(30);
 
     public static bool IsActive => _active;
     public static int  StepIndex => _index;
@@ -170,7 +172,7 @@ internal static class ViperOpenerStateMachine
     public static void Start()
     {
         if (!PromeSettings.Instance.GetQt("起手爆发")) return;
-        if (JinyuViperRotation.UseOpener == false) return;
+        if (!JinyuViperRotation.UseOpener) return;
         Reset();
 
         switch (JinyuViperRotation.SelectedOpenerIndex)
@@ -208,7 +210,14 @@ internal static class ViperOpenerStateMachine
             }
 
             if (type == ActionType.Gcd && VPRApi.GCD剩余ms() > 0f)
+            {
+                if (_lastStepTime != DateTime.MinValue && DateTime.Now - _lastStepTime > StepTimeout)
+                {
+                    PluginLog.Warning($"[VPR] 起手GCD等待超时({StepTimeout.TotalSeconds:F0}s), 强制重置");
+                    _active = false;
+                }
                 return null;
+            }
 
             var action = new PAction(actionId, step.Type, step.Target)
             {
@@ -216,6 +225,7 @@ internal static class ViperOpenerStateMachine
             };
             PluginLog.Information($"[VPR] 起手步骤[{_index}] {step.Label} → {actionId}");
             _index++;
+            _lastStepTime = DateTime.Now;
             return action;
         }
 
