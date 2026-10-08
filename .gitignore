@@ -1,0 +1,18 @@
+# 构建产物
+obj/
+bin/
+release/
+*.dll
+*.pdb
+*.deps.json
+*.zip
+
+# 本地运行时文件
+Jinyu.settings.json
+
+# 开发参考资料
+tools/
+.vscode/
+
+# 杂项
+佩拉.jpeg
